@@ -2,55 +2,54 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 
-const PORT = 11817;
+const port = 11817;
 
-const server = http.createServer((req, res) => {
-    try {
-        const { headers } = req;
-        const clientHost = headers['x-forwarded-for'] || req.socket.remoteAddress
 
-        const reqUrl = url.parse(req.url);
-        if (reqUrl.pathname === '/') {
-            res.writeHead(400, { 'Content-Type': 'text/plain' });
-            res.end('Bad Request: Missing target URL');
-            return;
-        }
-        // output Clinet and Target host
-        const targetUrl = reqUrl.pathname.slice(1);
-    
-        const yellow = "\x1b[33m";
-        const reset = "\x1b[0m";
-        const green = "\x1b[32m"
-        console.log(`${formattedTime()}:   ${yellow}${clientHost}${reset} --> ${green}${targetUrl}${reset}`);
-        let proxyReq;
-        if (targetUrl.indexOf('https') == -1) {
-            proxyReq = http.request(targetUrl, proxyRes => {
-                res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                proxyRes.pipe(res);
-            });
-        } else {
-            proxyReq = https.request(targetUrl, proxyRes => {
-                res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                proxyRes.pipe(res);
-            });
-        }
-        proxyReq.on('error', err => {
-            console.error(err);
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end('Internal Server Error');
-        });
-
-        req.pipe(proxyReq);
-    } catch (e) {
-        console.log(String(e))
+const proxy = (req, res) => {
+    // output Clinet and Target host
+    const proxyUrl = req.url.slice(1);
+    if (proxyUrl === '/') {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Bad Request: Missing target URL');
+        return;
     }
+    const parsedUrl = url.parse(proxyUrl);
+    const yellow = "\x1b[33m";
+    const reset = "\x1b[0m";
+    const green = "\x1b[32m"
+    const { headers } = req;
+    const clientHost = headers['x-forwarded-for'] || req.socket.remoteAddress
+
+    console.log(`${formattedTime()}-[${req.method}]-${yellow}${clientHost}${reset} --> ${green}${proxyUrl}${reset}`);
+    
+    const proxyReq = (parsedUrl.protocol === 'https:') ? https.request : http.request;
+    const options = {
+        host: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedUrl.path,
+        method: req.method,
+        headers: req.headers,
+      };
+    // console.log(options)
+    const proxyRequest = proxyReq(options, (proxyResponse) => {
+        res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+        proxyResponse.pipe(res);
+      });
+      req.pipe(proxyRequest);
+
+    proxyRequest.on('error', (err) => {
+        console.error(`Error: ${err.message}`);
+        res.end();
+    });
+};
+
+const server = http.createServer(proxy)
+server.listen(port, () => {
+    console.log(`HTTP proxy server is listening on port ${port}`);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Proxy server listening on port ${PORT}`);
-});
 
-function formattedTime(){
+function formattedTime() {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
