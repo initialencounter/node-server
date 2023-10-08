@@ -1,7 +1,5 @@
 import axios from 'axios';
-import url from 'url';
 import http from 'http';
-import querystring from 'querystring'
 
 // 服务端口
 const port = 7860;
