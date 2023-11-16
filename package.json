@@ -4,7 +4,8 @@
   "description": "some nodejs server",
   "scripts": {
     "test": "node proxy-axios/lib/test",
-    "start": "node proxy-axios/lib/app"
+    "start": "node proxy-axios/lib/app",
+    "build": "cd proxy-axios/src;tsc;cd ../.."
   },
   "repository": {
     "type": "git",
