@@ -1,12 +1,16 @@
 {
-  "name": "node-server",
-  "version": "1.0.0",
+  "name": "@initencounter/node-server",
+  "version": "1.0.1",
   "description": "some nodejs server",
   "scripts": {
-    "test": "node proxy-axios/lib/test",
-    "start": "node proxy-axios/lib/app",
-    "build": "cd proxy-axios/src;tsc;cd ../.."
+    "test": "node lib/test",
+    "start": "node lib/app",
+    "build": "tsc"
   },
+  "files": [
+    "lib"
+  ],
+  "main": "lib/app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/initialencounter/node-server.git"
