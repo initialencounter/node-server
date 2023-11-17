@@ -47,7 +47,7 @@ const proxy = async (req, res) => {
                 url: targetUrl,
                 method: targetMethod,
                 headers: {
-                    "Cookie": `logged_in=yes;tz=${query.get('tz') ?? "Asia%2FShanghai"}`,
+                    "Cookie": `${query.get('cookie')}`,
                 },
             }
             if (query.get("data")) {
