@@ -21,6 +21,7 @@ const proxy = async (req, res) => {
     const green = "\x1b[32m";
     const { headers } = req;
     const clientHost = headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const currentTime = new Date().toUTCString();
     console.log(`${formattedTime()}-[${req.method}]-${yellow}${clientHost}${reset} --> ${green}${parsedUrl}${reset}`);
     try {
         if (req.method === "GET") {
@@ -42,7 +43,7 @@ const proxy = async (req, res) => {
                 url: targetUrl,
                 method: targetMethod,
                 headers: {
-                    Date: getCurrentGMTTimeString()
+                    Date: currentTime
                 }
             };
             if (query.get("data")) {
@@ -93,13 +94,3 @@ function formattedTime() {
     const formattedTime = `${year}.${month}.${day}.${hour}:${minute}`;
     return formattedTime;
 }
-function getCurrentGMTTimeString() {
-    // 获取当前时间
-    const currentDate = new Date();
-    // 将日期格式化为 "Thu, 16 Nov 2023 16:18:21 GMT" 的格式
-    const formattedDate = currentDate.toUTCString();
-    return formattedDate;
-}
-// 调用方法并输出结果
-const currentGMTTimeString = getCurrentGMTTimeString();
-console.log(currentGMTTimeString);
